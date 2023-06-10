@@ -42,6 +42,11 @@ func load(path string) error {
 		if line == "" {
 			continue
 		}
+		if strings.Contains(line, "#") {
+			if strings.HasPrefix(line, "#") {
+				continue
+			}
+		}
 		pair := strings.Split(line, "=")
 		if err = set(pair[0], pair[1]); err != nil {
 			return err
