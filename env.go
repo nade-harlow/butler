@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"errors"
+	"fmt"
 	"os"
 	"reflect"
 	"strings"
@@ -58,17 +60,25 @@ func load(path string) error {
 }
 
 func env(envStruct interface{}, path string) error {
+	if path == "" {
+		return errors.New("provide file path")
+	}
 	err := load(path)
 	if err != nil {
 		return err
 	}
+	if envStruct == nil {
+		return errors.New("struct cannot be nil")
+	}
 
-	bind(envStruct)
-	return nil
+	return bind(envStruct)
 }
 
-func bind(envStruct interface{}) {
+func bind(envStruct interface{}) error {
 	val := reflect.ValueOf(envStruct)
+	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct || val.IsNil() {
+		return fmt.Errorf("struct must be a pointer to a struct")
+	}
 	v := val.Elem()
 	for i := 0; i < v.NumField(); i++ {
 		tag := v.Type().Field(i).Tag.Get("env")
@@ -82,4 +92,5 @@ func bind(envStruct interface{}) {
 			v.Field(i).SetString(get(field))
 		}
 	}
+	return nil
 }
