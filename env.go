@@ -11,30 +11,21 @@ import (
 	"strings"
 )
 
-type Port struct {
-	Number int `env:"number"`
-}
-type data struct {
-	Port    Port   `env:"port"`
-	Env     string `env:"env"`
-	Verbose bool   `env:"verbose"`
-}
-
 const (
 	envTag       = "env"
 	yamlFileType = "yaml"
 	envFileType  = "env"
 )
 
-func set(key, value string) error {
+func SetEnv(key, value string) error {
 	return os.Setenv(key, value)
 }
 
-func get(key string) string {
+func GetEnv(key string) string {
 	return os.Getenv(key)
 }
 
-func lookUp(key string) (string, bool) {
+func lookUpEnv(key string) (string, bool) {
 	return os.LookupEnv(key)
 }
 
@@ -54,7 +45,7 @@ func loadENVFile(path string) error {
 			continue
 		}
 		pair := strings.Split(line, "=")
-		if err = set(strings.ToLower(pair[0]), pair[1]); err != nil {
+		if err = SetEnv(strings.ToLower(pair[0]), pair[1]); err != nil {
 			return err
 		}
 	}
@@ -62,7 +53,7 @@ func loadENVFile(path string) error {
 	return nil
 }
 
-func SetupConfig(envStruct interface{}, path string) error {
+func SetupEvn(envStruct interface{}, path string) error {
 	if envStruct == nil {
 		return errors.New("struct cannot be nil")
 	}
@@ -101,27 +92,27 @@ func bind(envStruct interface{}) error {
 		field := v.Type().Field(i).Tag.Get(envTag)
 		switch v.Field(i).Kind() {
 		case reflect.String:
-			v.Field(i).SetString(get(field))
+			v.Field(i).SetString(GetEnv(field))
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			integer, err := strconv.ParseInt(get(field), 10, 64)
+			integer, err := strconv.ParseInt(GetEnv(field), 10, 64)
 			if err != nil {
 				return err
 			}
 			v.Field(i).SetInt(integer)
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			integer, err := strconv.ParseUint(get(field), 10, 64)
+			integer, err := strconv.ParseUint(GetEnv(field), 10, 64)
 			if err != nil {
 				return err
 			}
 			v.Field(i).SetUint(integer)
 		case reflect.Float32, reflect.Float64:
-			float, err := strconv.ParseFloat(get(field), 64)
+			float, err := strconv.ParseFloat(GetEnv(field), 64)
 			if err != nil {
 				panic(err)
 			}
 			v.Field(i).SetFloat(float)
 		case reflect.Bool:
-			boolean, err := strconv.ParseBool(get(field))
+			boolean, err := strconv.ParseBool(GetEnv(field))
 			if err != nil {
 				panic(err)
 			}
