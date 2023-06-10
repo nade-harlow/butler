@@ -1,4 +1,4 @@
-package main
+package butler
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 func main() {
 	d := data{}
-	err := SetupConfig(&d, ".env")
+	err := SetupConfig(&d, ".yaml")
 	if err != nil {
 		log.Println("ERR: ", err)
 		return
