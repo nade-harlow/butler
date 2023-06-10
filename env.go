@@ -22,7 +22,7 @@ type data struct {
 }
 
 const (
-	ENV_TAG = "env"
+	EnvTag = "env"
 )
 
 //read from env
@@ -100,12 +100,12 @@ func bind(envStruct interface{}) error {
 	}
 	v := val.Elem()
 	for i := 0; i < v.NumField(); i++ {
-		tag := v.Type().Field(i).Tag.Get(ENV_TAG)
+		tag := v.Type().Field(i).Tag.Get(EnvTag)
 		if tag == "" {
 			continue
 		}
 
-		field := v.Type().Field(i).Tag.Get(ENV_TAG)
+		field := v.Type().Field(i).Tag.Get(EnvTag)
 		switch v.Field(i).Kind() {
 		case reflect.String:
 			v.Field(i).SetString(get(field))
@@ -144,10 +144,5 @@ func loadYAMLFile(envStruct interface{}, filepath string) error {
 		return err
 	}
 
-	err = yaml.Unmarshal(f, envStruct)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return yaml.Unmarshal(f, envStruct)
 }
