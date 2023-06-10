@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
 type data struct {
-	Port string `env:"PORT"`
+	Port int32  `env:"PORT"`
 	Env  string `env:"ENV"`
 	//Name string `env:"name"`
 }
@@ -86,10 +87,16 @@ func bind(envStruct interface{}) error {
 			continue
 		}
 
+		field := v.Type().Field(i).Tag.Get("env")
 		switch v.Field(i).Kind() {
 		case reflect.String:
-			field := v.Type().Field(i).Tag.Get("env")
 			v.Field(i).SetString(get(field))
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			integer, err := strconv.ParseInt(get(field), 10, 64)
+			if err != nil {
+				return err
+			}
+			v.Field(i).SetInt(integer)
 		}
 	}
 	return nil
