@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
@@ -24,12 +23,6 @@ type data struct {
 const (
 	EnvTag = "env"
 )
-
-//read from env
-//set env
-//update env
-//read env and bind to struct
-//read from file and bind to struct (.yaml and .env)
 
 func set(key, value string) error {
 	return os.Setenv(key, value)
@@ -55,10 +48,8 @@ func loadENVFile(path string) error {
 		if line == "" {
 			continue
 		}
-		if strings.Contains(line, "#") {
-			if strings.HasPrefix(line, "#") {
-				continue
-			}
+		if strings.Contains(line, "#") && strings.HasPrefix(line, "#") {
+			continue
 		}
 		pair := strings.Split(line, "=")
 		if err = set(strings.ToLower(pair[0]), pair[1]); err != nil {
@@ -69,7 +60,7 @@ func loadENVFile(path string) error {
 	return nil
 }
 
-func env(envStruct interface{}, path string) error {
+func SetupConfig(envStruct interface{}, path string) error {
 	if envStruct == nil {
 		return errors.New("struct cannot be nil")
 	}
@@ -96,7 +87,7 @@ func env(envStruct interface{}, path string) error {
 func bind(envStruct interface{}) error {
 	val := reflect.ValueOf(envStruct)
 	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct || val.IsNil() {
-		return fmt.Errorf("struct must be a pointer to a struct")
+		return errors.New("struct must be a pointer to a struct")
 	}
 	v := val.Elem()
 	for i := 0; i < v.NumField(); i++ {

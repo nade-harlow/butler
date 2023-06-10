@@ -7,7 +7,7 @@ import (
 
 func main() {
 	d := data{}
-	err := env(&d, ".env")
+	err := SetupConfig(&d, ".env")
 	if err != nil {
 		log.Println("ERR: ", err)
 		return
