@@ -11,7 +11,7 @@ import (
 )
 
 type data struct {
-	Port int32  `env:"PORT"`
+	Port uint64 `env:"PORT"`
 	Env  string `env:"ENV"`
 	//Name string `env:"name"`
 }
@@ -97,6 +97,12 @@ func bind(envStruct interface{}) error {
 				return err
 			}
 			v.Field(i).SetInt(integer)
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			integer, err := strconv.ParseUint(get(field), 10, 64)
+			if err != nil {
+				return err
+			}
+			v.Field(i).SetUint(integer)
 		}
 	}
 	return nil
