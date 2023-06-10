@@ -8,9 +8,9 @@ import (
 )
 
 type data struct {
-	id   string `env:"id"`
-	age  int    `env:"age"`
-	name string `env:"name"`
+	Port string `env:"PORT"`
+	Env  string `env:"ENV"`
+	//Name string `env:"name"`
 }
 
 //read from env
@@ -57,6 +57,16 @@ func load(path string) error {
 	return nil
 }
 
+func env(envStruct interface{}, path string) error {
+	err := load(path)
+	if err != nil {
+		return err
+	}
+
+	bind(envStruct)
+	return nil
+}
+
 func bind(envStruct interface{}) {
 	val := reflect.ValueOf(envStruct)
 	v := val.Elem()
@@ -65,9 +75,10 @@ func bind(envStruct interface{}) {
 		if tag == "" {
 			continue
 		}
+
 		switch v.Field(i).Kind() {
 		case reflect.String:
-			field := v.Type().Field(0).Tag.Get("env")
+			field := v.Type().Field(i).Tag.Get("env")
 			v.Field(i).SetString(get(field))
 		}
 	}
