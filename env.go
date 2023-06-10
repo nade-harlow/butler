@@ -11,8 +11,8 @@ import (
 )
 
 type data struct {
-	Port uint64 `env:"PORT"`
-	Env  string `env:"ENV"`
+	Port float64 `env:"PORT"`
+	Env  string  `env:"ENV"`
 	//Name string `env:"name"`
 }
 
@@ -103,6 +103,12 @@ func bind(envStruct interface{}) error {
 				return err
 			}
 			v.Field(i).SetUint(integer)
+		case reflect.Float32, reflect.Float64:
+			float, err := strconv.ParseFloat(get(field), 64)
+			if err != nil {
+				panic(err)
+			}
+			v.Field(i).SetFloat(float)
 		}
 	}
 	return nil
