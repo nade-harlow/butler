@@ -39,7 +39,7 @@ func lookUp(key string) (string, bool) {
 	return os.LookupEnv(key)
 }
 
-func load(path string) error {
+func loadENVFile(path string) error {
 	f, err := os.Open(path)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func load(path string) error {
 			}
 		}
 		pair := strings.Split(line, "=")
-		if err = set(pair[0], pair[1]); err != nil {
+		if err = set(strings.ToLower(pair[0]), pair[1]); err != nil {
 			return err
 		}
 	}
@@ -66,18 +66,27 @@ func load(path string) error {
 }
 
 func env(envStruct interface{}, path string) error {
-	if path == "" {
-		return errors.New("provide file path")
-	}
-	err := load(path)
-	if err != nil {
-		return err
-	}
 	if envStruct == nil {
 		return errors.New("struct cannot be nil")
 	}
+	if path == "" {
+		return errors.New("provide file path")
+	}
+	fileExtension := strings.Split(path, ".")
+	fileExt := fileExtension[len(fileExtension)-1]
+	switch fileExt {
+	case "env":
+		err := loadENVFile(path)
+		if err != nil {
+			return err
+		}
+		return bind(envStruct)
+	case "yaml":
+		return loadYAMLFile(envStruct, path)
 
-	return bind(envStruct)
+	}
+
+	return nil
 }
 
 func bind(envStruct interface{}) error {
@@ -125,7 +134,7 @@ func bind(envStruct interface{}) error {
 	return nil
 }
 
-func ReadYAMLFile(envStruct interface{}, filepath string) error {
+func loadYAMLFile(envStruct interface{}, filepath string) error {
 	f, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		return err

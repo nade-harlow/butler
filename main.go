@@ -7,7 +7,7 @@ import (
 
 func main() {
 	d := data{}
-	err := ReadYAMLFile(&d, ".yaml")
+	err := env(&d, ".env")
 	if err != nil {
 		log.Println("ERR: ", err)
 		return
