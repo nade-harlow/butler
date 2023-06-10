@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"os"
+	"reflect"
 	"strings"
 )
 
@@ -54,4 +55,20 @@ func load(path string) error {
 	}
 
 	return nil
+}
+
+func bind(envStruct interface{}) {
+	val := reflect.ValueOf(envStruct)
+	v := val.Elem()
+	for i := 0; i < v.NumField(); i++ {
+		tag := v.Type().Field(i).Tag.Get("env")
+		if tag == "" {
+			continue
+		}
+		switch v.Field(i).Kind() {
+		case reflect.String:
+			field := v.Type().Field(0).Tag.Get("env")
+			v.Field(i).SetString(get(field))
+		}
+	}
 }
