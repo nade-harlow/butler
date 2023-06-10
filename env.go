@@ -11,9 +11,9 @@ import (
 )
 
 type data struct {
-	Port float64 `env:"PORT"`
-	Env  string  `env:"ENV"`
-	//Name string `env:"name"`
+	Port    float64 `env:"PORT"`
+	Env     string  `env:"ENV"`
+	Verbose bool    `env:"VERBOSE"`
 }
 
 //read from env
@@ -109,6 +109,12 @@ func bind(envStruct interface{}) error {
 				panic(err)
 			}
 			v.Field(i).SetFloat(float)
+		case reflect.Bool:
+			boolean, err := strconv.ParseBool(get(field))
+			if err != nil {
+				panic(err)
+			}
+			v.Field(i).SetBool(boolean)
 		}
 	}
 	return nil

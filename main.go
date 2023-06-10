@@ -16,4 +16,5 @@ func main() {
 	fmt.Println(get("ENV"), "VAL")
 	fmt.Println(d.Port, "PORT")
 	fmt.Println(d.Env, "ENV")
+	fmt.Println(d.Verbose, "VERBOSE")
 }
