@@ -21,6 +21,10 @@ type data struct {
 	Verbose bool   `env:"verbose"`
 }
 
+const (
+	ENV_TAG = "env"
+)
+
 //read from env
 //set env
 //update env
@@ -73,8 +77,8 @@ func env(envStruct interface{}, path string) error {
 		return errors.New("provide file path")
 	}
 	fileExtension := strings.Split(path, ".")
-	fileExt := fileExtension[len(fileExtension)-1]
-	switch fileExt {
+	fileType := fileExtension[len(fileExtension)-1]
+	switch fileType {
 	case "env":
 		err := loadENVFile(path)
 		if err != nil {
@@ -96,12 +100,12 @@ func bind(envStruct interface{}) error {
 	}
 	v := val.Elem()
 	for i := 0; i < v.NumField(); i++ {
-		tag := v.Type().Field(i).Tag.Get("env")
+		tag := v.Type().Field(i).Tag.Get(ENV_TAG)
 		if tag == "" {
 			continue
 		}
 
-		field := v.Type().Field(i).Tag.Get("env")
+		field := v.Type().Field(i).Tag.Get(ENV_TAG)
 		switch v.Field(i).Kind() {
 		case reflect.String:
 			v.Field(i).SetString(get(field))
