@@ -21,7 +21,9 @@ type data struct {
 }
 
 const (
-	EnvTag = "env"
+	envTag       = "env"
+	yamlFileType = "yaml"
+	envFileType  = "env"
 )
 
 func set(key, value string) error {
@@ -70,13 +72,13 @@ func SetupConfig(envStruct interface{}, path string) error {
 	fileExtension := strings.Split(path, ".")
 	fileType := fileExtension[len(fileExtension)-1]
 	switch fileType {
-	case "env":
+	case envFileType:
 		err := loadENVFile(path)
 		if err != nil {
 			return err
 		}
 		return bind(envStruct)
-	case "yaml":
+	case yamlFileType:
 		return loadYAMLFile(envStruct, path)
 
 	}
@@ -91,12 +93,12 @@ func bind(envStruct interface{}) error {
 	}
 	v := val.Elem()
 	for i := 0; i < v.NumField(); i++ {
-		tag := v.Type().Field(i).Tag.Get(EnvTag)
+		tag := v.Type().Field(i).Tag.Get(envTag)
 		if tag == "" {
 			continue
 		}
 
-		field := v.Type().Field(i).Tag.Get(EnvTag)
+		field := v.Type().Field(i).Tag.Get(envTag)
 		switch v.Field(i).Kind() {
 		case reflect.String:
 			v.Field(i).SetString(get(field))
