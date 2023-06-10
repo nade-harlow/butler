@@ -4,16 +4,21 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"gopkg.in/yaml.v3"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
+type Port struct {
+	Number int `env:"number"`
+}
 type data struct {
-	Port    float64 `env:"PORT"`
-	Env     string  `env:"ENV"`
-	Verbose bool    `env:"VERBOSE"`
+	Port    Port   `env:"port"`
+	Env     string `env:"env"`
+	Verbose bool   `env:"verbose"`
 }
 
 //read from env
@@ -117,5 +122,19 @@ func bind(envStruct interface{}) error {
 			v.Field(i).SetBool(boolean)
 		}
 	}
+	return nil
+}
+
+func ReadYAMLFile(envStruct interface{}, filepath string) error {
+	f, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(f, envStruct)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
