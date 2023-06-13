@@ -1,10 +1,11 @@
-package butler
+package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
+	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"strconv"
@@ -16,6 +17,15 @@ const (
 	yamlFileType = "yaml"
 	envFileType  = "env"
 )
+
+type Port struct {
+	Number int `env:"number"`
+}
+type data struct {
+	Port    Port   `env:"port"`
+	Env     string `env:"env"`
+	Verbose bool   `env:"verbose"`
+}
 
 func SetEnv(key, value string) error {
 	return os.Setenv(key, value)
@@ -123,10 +133,117 @@ func bind(envStruct interface{}) error {
 }
 
 func loadYAMLFile(envStruct interface{}, filepath string) error {
-	f, err := ioutil.ReadFile(filepath)
+	yamlReader(envStruct, filepath)
+	//f, err := ioutil.ReadFile(filepath)
+	//if err != nil {
+	//	return err
+	//}
+	//log.Printf("%#v", string(f))
+	//d := data{}
+	//err = json.Unmarshal(f, &d)
+	//if err != nil {
+	//	log.Println("Yaml error ", err)
+	//	return err
+	//}
+	//log.Printf("%#v", d)
+	//
+	//return yaml.Unmarshal(f, envStruct)
+	return nil
+}
+
+//get fist key
+//get value
+//get first key and nested value
+
+func yamlReader(envStruct interface{}, path string) {
+	f, err := os.Open(path)
 	if err != nil {
-		return err
+		return
+	}
+	s := bufio.NewScanner(f)
+	m := make(map[string]interface{})
+	key := ""
+	parentKey := ""
+	value := ""
+
+	for s.Scan() {
+		line := s.Text()
+		keyValue := strings.Split(line, ":")
+		var tempSlice []string
+		if keyValue[1] == "" {
+			tempSlice = append(tempSlice, keyValue[0])
+			keyValue = tempSlice
+		}
+		key = keyValue[0]
+		if len(keyValue) == 1 {
+			parentKey = keyValue[0]
+			m[keyValue[0]] = strings.TrimSpace(value)
+			continue
+		}
+		if len(keyValue) > 1 {
+			value = keyValue[1]
+			if strings.HasPrefix(key, " ") {
+				m = appender(parentKey, keyValue, m)
+			} else {
+				m[key] = strings.TrimSpace(value)
+			}
+		}
+	}
+	b, err := json.Marshal(m)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = json.Unmarshal(b, &envStruct)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = yamlUnmarshalWithTagName(envStruct)
+	if err != nil {
+		log.Fatal(err)
+		return
 	}
 
-	return yaml.Unmarshal(f, envStruct)
+}
+
+var subMap = make(map[string]interface{})
+
+func appender(k string, line []string, v map[string]interface{}) map[string]interface{} {
+	subMap[strings.TrimSpace(line[0])] = strings.TrimSpace(line[1])
+	v[k] = subMap
+	return v
+}
+
+func yamlUnmarshalWithTagName(v interface{}) error {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Ptr || rv.IsNil() {
+		return fmt.Errorf("non-nil pointer expected")
+	}
+
+	rt := rv.Elem().Type()
+	if rt.Kind() != reflect.Struct {
+		return fmt.Errorf("non-struct type %s", rt)
+	}
+
+	m := make(map[string]interface{})
+	//if err := yaml.Unmarshal(data, &v); err != nil {
+	//	return err
+	//}
+
+	rv = rv.Elem()
+	for i := 0; i < rt.NumField(); i++ {
+		field := rt.Field(i)
+		if yamlTag := field.Tag.Get(envTag); yamlTag != "" {
+			value, ok := m[yamlTag]
+			if !ok {
+				continue
+			}
+
+			fieldValue := rv.Field(i)
+			if fieldValue.CanSet() {
+				fieldValue.Set(reflect.ValueOf(value))
+			}
+		}
+	}
+
+	return nil
 }
