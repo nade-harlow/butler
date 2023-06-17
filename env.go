@@ -167,7 +167,8 @@ func yamlReader(envStruct interface{}, path string) {
 			if strings.HasPrefix(key, " ") {
 				appender(parentKey, keyValue, m)
 			} else {
-				m[key] = strings.TrimSpace(value)
+				val := getValueWithType(strings.TrimSpace(value))
+				m[key] = val
 			}
 		}
 	}
@@ -179,13 +180,38 @@ func yamlReader(envStruct interface{}, path string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 var subMap = make(map[string]interface{})
 
 func appender(k string, line []string, v map[string]interface{}) map[string]interface{} {
-	subMap[strings.TrimSpace(line[0])] = strings.TrimSpace(line[1])
+	val := getValueWithType(strings.TrimSpace(line[1]))
+	subMap[strings.TrimSpace(line[0])] = val
 	v[k] = subMap
 	return v
+}
+
+func getValueWithType(input string) interface{} {
+	// Try parsing as boolean
+	if val, err := strconv.ParseBool(input); err == nil {
+		return val
+	}
+
+	// Try parsing as integer
+	if val, err := strconv.ParseInt(input, 10, 64); err == nil {
+		return val
+	}
+
+	// Try parsing as float
+	if val, err := strconv.ParseFloat(input, 64); err == nil {
+		return val
+	}
+
+	// Try parsing as unit
+	if val, err := strconv.ParseUint(input, 10, 64); err == nil {
+		return val
+	}
+
+	// Return as string if no other type matched
+	return input
 }
