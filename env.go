@@ -134,10 +134,6 @@ func loadYAMLFile(envStruct interface{}, filepath string) error {
 	return yaml.Unmarshal(f, envStruct)
 }
 
-//get fist key
-//get value
-//get first key and nested value
-
 func yamlReader(envStruct interface{}, path string) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -197,22 +193,18 @@ func getValueWithType(input string) interface{} {
 	if val, err := strconv.ParseBool(input); err == nil {
 		return val
 	}
-
 	// Try parsing as integer
 	if val, err := strconv.ParseInt(input, 10, 64); err == nil {
 		return val
 	}
-
 	// Try parsing as float
 	if val, err := strconv.ParseFloat(input, 64); err == nil {
 		return val
 	}
-
 	// Try parsing as unit
 	if val, err := strconv.ParseUint(input, 10, 64); err == nil {
 		return val
 	}
-
 	// Return as string if no other type matched
 	return input
 }
