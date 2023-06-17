@@ -45,7 +45,9 @@ func loadENVFile(path string) error {
 			continue
 		}
 		pair := strings.Split(line, "=")
-		if err = SetEnv(strings.ToLower(pair[0]), pair[1]); err != nil {
+		key := strings.ToLower(strings.TrimSpace(pair[0]))
+		value := strings.TrimSpace(pair[1])
+		if err = SetEnv(key, value); err != nil {
 			return err
 		}
 	}
@@ -71,7 +73,6 @@ func SetupEvn(envStruct interface{}, path string) error {
 		return bind(envStruct)
 	case yamlFileType:
 		return loadYAMLFile(envStruct, path)
-
 	}
 
 	return nil
