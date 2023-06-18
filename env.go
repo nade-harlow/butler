@@ -4,9 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
-	"log"
 	"os"
 	"reflect"
 	"strconv"
@@ -126,18 +123,19 @@ func bind(envStruct interface{}) error {
 }
 
 func loadYAMLFile(envStruct interface{}, filepath string) error {
-	f, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return err
-	}
+	//f, err := ioutil.ReadFile(filepath)
+	//if err != nil {
+	//	return err
+	//}
 
-	return yaml.Unmarshal(f, envStruct)
+	//return yaml.Unmarshal(f, envStruct)
+	return yamlReader(envStruct, filepath)
 }
 
-func yamlReader(envStruct interface{}, path string) {
+func yamlReader(envStruct interface{}, path string) error {
 	f, err := os.Open(path)
 	if err != nil {
-		return
+		return errors.New("error opening .yaml file: " + err.Error())
 	}
 	s := bufio.NewScanner(f)
 	m := make(map[string]interface{})
@@ -171,12 +169,13 @@ func yamlReader(envStruct interface{}, path string) {
 	}
 	b, err := json.Marshal(m)
 	if err != nil {
-		log.Fatal(err)
+		return errors.New("error marshaling .yaml: " + err.Error())
 	}
 	err = json.Unmarshal(b, &envStruct)
 	if err != nil {
-		log.Fatal(err)
+		return errors.New("error unmarshaling .yaml: " + err.Error())
 	}
+	return nil
 }
 
 var subMap = make(map[string]interface{})
