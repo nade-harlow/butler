@@ -1,4 +1,4 @@
-module butler
+module github.com/nade-harlow/butler
 
 go 1.18
 
