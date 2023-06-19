@@ -94,8 +94,8 @@ func bind(envStruct interface{}) error {
 
 		field := v.Type().Field(i).Tag.Get(envTag)
 
-		envFieldValue := GetEnv(field)
-		if envFieldValue == "" {
+		envFieldValue, ok := lookUpEnv(field)
+		if !ok {
 			continue
 		}
 
