@@ -3,12 +3,14 @@ package butler
 import (
 	"bufio"
 	"errors"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -91,33 +93,65 @@ func bind(envStruct interface{}) error {
 		}
 
 		field := v.Type().Field(i).Tag.Get(envTag)
-		switch v.Field(i).Kind() {
-		case reflect.String:
-			v.Field(i).SetString(GetEnv(field))
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			integer, err := strconv.ParseInt(GetEnv(field), 10, 64)
+
+		envFieldValue := GetEnv(field)
+		if envFieldValue == "" {
+			continue
+		}
+
+		currentFieldValue := reflect.Indirect(v).Field(i).Interface()
+
+		switch currentFieldValue.(type) {
+		case string:
+			v.Field(i).SetString(envFieldValue)
+		case int, int8, int16, int32, int64:
+			integer, err := strconv.ParseInt(envFieldValue, 10, 64)
 			if err != nil {
 				return err
 			}
 			v.Field(i).SetInt(integer)
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			integer, err := strconv.ParseUint(GetEnv(field), 10, 64)
+		case uint, uint8, uint16, uint32, uint64:
+			integer, err := strconv.ParseUint(envFieldValue, 10, 64)
 			if err != nil {
 				return err
 			}
 			v.Field(i).SetUint(integer)
-		case reflect.Float32, reflect.Float64:
-			float, err := strconv.ParseFloat(GetEnv(field), 64)
+		case float32, float64:
+			float, err := strconv.ParseFloat(envFieldValue, 64)
 			if err != nil {
 				panic(err)
 			}
 			v.Field(i).SetFloat(float)
-		case reflect.Bool:
-			boolean, err := strconv.ParseBool(GetEnv(field))
+		case bool:
+			boolean, err := strconv.ParseBool(envFieldValue)
 			if err != nil {
-				panic(err)
+				return err
 			}
 			v.Field(i).SetBool(boolean)
+
+		case time.Time:
+			if envValue, ok := lookUpEnv(envTag); ok && envValue != "" {
+				format := v.Type().Field(i).Tag.Get("format")
+				if format == "" {
+					format = "2006-01-02T15:04:05"
+				}
+				t, err := time.Parse(format, envFieldValue)
+				if err != nil {
+					return err
+				}
+				// check if it is a pointer
+				if _, ok := currentFieldValue.(*time.Time); ok {
+					v.Field(i).Set(reflect.ValueOf(&t))
+				} else {
+					v.Field(i).Set(reflect.ValueOf(t))
+				}
+			}
+		case time.Duration: // 1h0m0s
+			d, err := time.ParseDuration(envFieldValue)
+			if err != nil {
+				return err
+			}
+			v.Field(i).Set(reflect.ValueOf(d))
 		}
 	}
 	return nil
