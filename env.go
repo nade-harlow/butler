@@ -145,15 +145,18 @@ func yamlReader(envStruct interface{}, path string) error {
 
 	for s.Scan() {
 		line := s.Text()
+		if line == "" {
+			continue
+		}
 		keyValue := strings.Split(line, ":")
 		var tempSlice []string
 		if keyValue[1] == "" {
 			tempSlice = append(tempSlice, keyValue[0])
 			keyValue = tempSlice
 		}
-		key = keyValue[0]
+		key = removeHyphen(keyValue[0])
 		if len(keyValue) == 1 {
-			parentKey = keyValue[0]
+			parentKey = removeHyphen(keyValue[0])
 			m[keyValue[0]] = strings.TrimSpace(value)
 			continue
 		}
@@ -162,6 +165,7 @@ func yamlReader(envStruct interface{}, path string) error {
 			if strings.HasPrefix(key, " ") {
 				appender(parentKey, keyValue, m)
 			} else {
+				subMap = make(map[string]interface{}) //reset map
 				val := getValueWithType(strings.TrimSpace(value))
 				m[key] = val
 			}
@@ -173,17 +177,18 @@ func yamlReader(envStruct interface{}, path string) error {
 	}
 	err = json.Unmarshal(b, &envStruct)
 	if err != nil {
-		return errors.New("error unmarshaling .yaml: " + err.Error())
+		return errors.New("error unmarshalling .yaml: " + err.Error())
 	}
 	return nil
 }
 
 var subMap = make(map[string]interface{})
 
-func appender(k string, line []string, v map[string]interface{}) map[string]interface{} {
-	val := getValueWithType(strings.TrimSpace(line[1]))
-	subMap[strings.TrimSpace(line[0])] = val
-	v[k] = subMap
+func appender(parentKey string, line []string, v map[string]interface{}) map[string]interface{} {
+	childValue := getValueWithType(strings.TrimSpace(line[1]))
+	childKey := removeHyphen(strings.TrimSpace(line[0]))
+	subMap[childKey] = childValue
+	v[parentKey] = subMap
 	return v
 }
 
@@ -206,4 +211,8 @@ func getValueWithType(input string) interface{} {
 	}
 	// Return as string if no other type matched
 	return input
+}
+
+func removeHyphen(key string) string {
+	return strings.Replace(key, "_", "", -1)
 }
