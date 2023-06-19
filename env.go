@@ -123,12 +123,6 @@ func bind(envStruct interface{}) error {
 }
 
 func loadYAMLFile(envStruct interface{}, filepath string) error {
-	//f, err := ioutil.ReadFile(filepath)
-	//if err != nil {
-	//	return err
-	//}
-
-	//return yaml.Unmarshal(f, envStruct)
 	return yamlReader(envStruct, filepath)
 }
 
