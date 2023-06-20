@@ -3,7 +3,7 @@ package butler
 import (
 	"bufio"
 	"errors"
-	"io/ioutil"
+
 	"os"
 	"reflect"
 	"strconv"
@@ -165,13 +165,4 @@ func bind(envStruct interface{}) error {
 		}
 	}
 	return nil
-}
-
-func loadYAMLFile(envStruct interface{}, filepath string) error {
-	f, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return err
-	}
-
-	return yaml.Unmarshal(f, envStruct)
 }
