@@ -15,8 +15,14 @@ import (
 
 const (
 	envTag       = "env"
+	formatTag    = "env"
 	yamlFileType = "yaml"
 	envFileType  = "env"
+)
+
+var (
+	InvalidFormatError    = errors.New("please provide a valid time parseable format")
+	MissingFormatTagError = errors.New("an extra tag `format` is needed containing valid time parseable format")
 )
 
 func SetEnv(key, value string) error {
@@ -130,22 +136,26 @@ func bind(envStruct interface{}) error {
 			v.Field(i).SetBool(boolean)
 
 		case time.Time:
-			if envValue, ok := lookUpEnv(envTag); ok && envValue != "" {
-				format := v.Type().Field(i).Tag.Get("format")
-				if format == "" {
-					format = "2006-01-02T15:04:05"
-				}
-				t, err := time.Parse(format, envFieldValue)
-				if err != nil {
-					return err
-				}
-				// check if it is a pointer
-				if _, ok := currentFieldValue.(*time.Time); ok {
-					v.Field(i).Set(reflect.ValueOf(&t))
-				} else {
-					v.Field(i).Set(reflect.ValueOf(t))
-				}
+			format, exists := v.Type().Field(i).Tag.Lookup(formatTag)
+			if !exists {
+				return MissingFormatTagError
 			}
+
+			if format == "" {
+				return InvalidFormatError
+			}
+
+			parsedTime, err := time.Parse(format, envFieldValue)
+			if err != nil {
+				return err
+			}
+			// check if it is a pointer
+			if _, assertOk := currentFieldValue.(*time.Time); assertOk {
+				v.Field(i).Set(reflect.ValueOf(&parsedTime))
+			} else {
+				v.Field(i).Set(reflect.ValueOf(parsedTime))
+			}
+
 		case time.Duration: // 1h0m0s
 			d, err := time.ParseDuration(envFieldValue)
 			if err != nil {
