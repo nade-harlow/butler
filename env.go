@@ -3,16 +3,26 @@ package butler
 import (
 	"bufio"
 	"errors"
+
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 const (
 	envTag       = "env"
+	formatTag    = "format"
 	yamlFileType = "yaml"
 	envFileType  = "env"
+)
+
+var (
+	InvalidFormatError    = errors.New("please provide a valid time parseable format")
+	MissingFormatTagError = errors.New("an extra tag `format` is needed containing valid time parseable format")
 )
 
 func SetEnv(key, value string) error {
@@ -89,33 +99,69 @@ func bind(envStruct interface{}) error {
 		}
 
 		field := v.Type().Field(i).Tag.Get(envTag)
-		switch v.Field(i).Kind() {
-		case reflect.String:
-			v.Field(i).SetString(GetEnv(field))
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			integer, err := strconv.ParseInt(GetEnv(field), 10, 64)
+
+		envFieldValue, ok := lookUpEnv(field)
+		if !ok || envFieldValue == "" {
+			continue
+		}
+
+		currentFieldValue := reflect.Indirect(v).Field(i).Interface()
+
+		switch currentFieldValue.(type) {
+		case string:
+			v.Field(i).SetString(envFieldValue)
+		case int, int8, int16, int32, int64:
+			integer, err := strconv.ParseInt(envFieldValue, 10, 64)
 			if err != nil {
 				return err
 			}
 			v.Field(i).SetInt(integer)
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			integer, err := strconv.ParseUint(GetEnv(field), 10, 64)
+		case uint, uint8, uint16, uint32, uint64:
+			integer, err := strconv.ParseUint(envFieldValue, 10, 64)
 			if err != nil {
 				return err
 			}
 			v.Field(i).SetUint(integer)
-		case reflect.Float32, reflect.Float64:
-			float, err := strconv.ParseFloat(GetEnv(field), 64)
+		case float32, float64:
+			float, err := strconv.ParseFloat(envFieldValue, 64)
 			if err != nil {
 				panic(err)
 			}
 			v.Field(i).SetFloat(float)
-		case reflect.Bool:
-			boolean, err := strconv.ParseBool(GetEnv(field))
+		case bool:
+			boolean, err := strconv.ParseBool(envFieldValue)
 			if err != nil {
-				panic(err)
+				return err
 			}
 			v.Field(i).SetBool(boolean)
+
+		case time.Time:
+			format, exists := v.Type().Field(i).Tag.Lookup(formatTag)
+			if !exists {
+				return MissingFormatTagError
+			}
+
+			if format == "" {
+				return InvalidFormatError
+			}
+
+			parsedTime, err := time.Parse(format, envFieldValue)
+			if err != nil {
+				return err
+			}
+			// check if it is a pointer
+			if _, assertOk := currentFieldValue.(*time.Time); assertOk {
+				v.Field(i).Set(reflect.ValueOf(&parsedTime))
+			} else {
+				v.Field(i).Set(reflect.ValueOf(parsedTime))
+			}
+
+		case time.Duration: // 1h0m0s
+			d, err := time.ParseDuration(envFieldValue)
+			if err != nil {
+				return err
+			}
+			v.Field(i).Set(reflect.ValueOf(d))
 		}
 	}
 	return nil
