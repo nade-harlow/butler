@@ -15,7 +15,7 @@ import (
 
 const (
 	envTag       = "env"
-	formatTag    = "env"
+	formatTag    = "format"
 	yamlFileType = "yaml"
 	envFileType  = "env"
 )
