@@ -23,7 +23,7 @@ func GetEnv(key string) string {
 	return os.Getenv(key)
 }
 
-func lookUpEnv(key string) (string, bool) {
+func LookUpEnv(key string) (string, bool) {
 	return os.LookupEnv(key)
 }
 
@@ -90,9 +90,12 @@ func bind(envStruct interface{}) error {
 
 		field := v.Type().Field(i).Tag.Get(envTag)
 
-		envFieldValue, ok := lookUpEnv(field)
+		envFieldValue, ok := LookUpEnv(field)
 		if !ok || envFieldValue == "" {
-			continue
+			envFieldValue = v.Type().Field(i).Tag.Get(defaultTag)
+			if envFieldValue == "" {
+				continue
+			}
 		}
 
 		currentFieldValue := reflect.Indirect(v).Field(i).Interface()
