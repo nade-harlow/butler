@@ -11,8 +11,29 @@ import (
 )
 
 var (
-	InvalidFormatError    = errors.New("please provide a valid time parseable format")
-	MissingFormatTagError = errors.New("an extra tag `format` is needed containing valid time parseable format")
+	InvalidFormatError = errors.New("please provide a valid time format")
+
+	timeLayouts = []string{
+		time.RFC3339,
+		time.Layout,
+		time.ANSIC,
+		time.UnixDate,
+		time.RubyDate,
+		time.RFC822,
+		time.RFC822Z,
+		time.RFC850,
+		time.RFC1123,
+		time.RFC1123Z,
+		time.RFC3339,
+		time.RFC3339Nano,
+
+		"2006-01-02",
+		"2006-01-02 15:04:05",
+		"2006-01-02T15:04:05",
+		"2006/01/02",
+		"2006/01/02 15:04:05",
+		"2006/01/02T15:04:05",
+	}
 )
 
 func SetEnv(key, value string) error {
@@ -134,16 +155,8 @@ func bind(envStruct interface{}) error {
 			v.Field(i).SetBool(boolean)
 
 		case time.Time:
-			format, exists := v.Type().Field(i).Tag.Lookup(formatTag)
-			if !exists {
-				return MissingFormatTagError
-			}
-
-			if format == "" {
-				return InvalidFormatError
-			}
-
-			parsedTime, err := time.Parse(format, envFieldValue)
+			format := v.Type().Field(i).Tag.Get(formatTag)
+			parsedTime, err := parseTimeWithMultipleLayouts(format, envFieldValue)
 			if err != nil {
 				return err
 			}
@@ -163,4 +176,24 @@ func bind(envStruct interface{}) error {
 		}
 	}
 	return nil
+}
+
+func parseTime(layout, value string) (time.Time, error) {
+	return time.Parse(layout, value)
+}
+
+// parseTimeWithMultipleLayouts parses time with different possible layouts
+func parseTimeWithMultipleLayouts(layout, value string) (parsedTime time.Time, err error) {
+	if layout != "" {
+		parsedTime, err = parseTime(layout, value)
+	} else {
+		for _, layout = range timeLayouts {
+			parsedTime, err = parseTime(layout, value)
+			if err == nil {
+				break
+			}
+		}
+	}
+
+	return parsedTime, err
 }
