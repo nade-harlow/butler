@@ -53,7 +53,7 @@ func loadENVFile(path string) error {
 	return nil
 }
 
-func SetupEvn(envStruct interface{}, path string) error {
+func LoadConfig(envStruct interface{}, path string) error {
 	if envStruct == nil {
 		return errors.New("struct cannot be nil")
 	}
