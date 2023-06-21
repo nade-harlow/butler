@@ -78,7 +78,6 @@ func appender(parentKey string, line []string, v map[string]interface{}) map[str
 
 // getValueWithType tries to parse the input string into different data types and returns the parsed value.
 func getValueWithType(input string) interface{} {
-
 	// Try parsing as unit
 	if val, err := strconv.ParseUint(input, 10, 64); err == nil {
 		return val
