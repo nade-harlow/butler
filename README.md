@@ -1,4 +1,4 @@
-# Butler [![Go Report Card](https://goreportcard.com/badge/github.com/nade-harlow/butler)](https://goreportcard.com/report/github.com/nade-harlow/butler)
+# Butler
 
 Butler enables you load your configuration file onto a configuration struct. Successfully reading your configuration variables of any Go type.
 

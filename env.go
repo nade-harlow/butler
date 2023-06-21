@@ -54,7 +54,6 @@ func LoadEnvFile(filePath string) error {
 	return nil
 }
 
-
 // LoadConfig loads configuration data from a file into the provided environment struct.
 // The function supports different file types such as .env and .yaml.
 func LoadConfig(envStruct interface{}, filePath string) error {
