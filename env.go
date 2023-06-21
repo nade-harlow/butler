@@ -27,6 +27,7 @@ func LookUpEnv(key string) (string, bool) {
 	return os.LookupEnv(key)
 }
 
+// LoadEnvFile loads environment variable key-value pairs from an environment file and sets them.
 func LoadEnvFile(filePath string) error {
 	f, err := os.Open(filePath)
 	if err != nil {
@@ -53,6 +54,8 @@ func LoadEnvFile(filePath string) error {
 	return nil
 }
 
+// LoadConfig loads configuration data from a file into the provided environment struct.
+// The function supports different file types such as .env and .yaml.
 func LoadConfig(envStruct interface{}, filePath string) error {
 	if envStruct == nil {
 		return errors.New("struct cannot be nil")
@@ -77,6 +80,7 @@ func LoadConfig(envStruct interface{}, filePath string) error {
 	return nil
 }
 
+// bind binds environment variable values to the corresponding fields in the provided environment struct.
 func bind(envStruct interface{}) error {
 	val := reflect.ValueOf(envStruct)
 	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct || val.IsNil() {
