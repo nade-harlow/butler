@@ -9,7 +9,9 @@ import (
 	"strings"
 )
 
-func loadYAMLFile(envStruct interface{}, filepath string) error {
+// LoadYAMLFile loads environment variable key-value pairs from a YAML file and populates the provided environment struct.
+// The function calls the yamlReader function internally to read and process the YAML file.
+func LoadYAMLFile(envStruct interface{}, filepath string) error {
 	return yamlReader(envStruct, filepath)
 }
 
@@ -65,6 +67,7 @@ func yamlReader(envStruct interface{}, path string) error {
 
 var subMap = make(map[string]interface{})
 
+// appender appends a nested key-value pair to the parentKey in the provided map.
 func appender(parentKey string, line []string, v map[string]interface{}) map[string]interface{} {
 	childValue := getValueWithType(strings.TrimSpace(line[1]))
 	childKey := removeHyphen(strings.TrimSpace(line[0]))
@@ -73,6 +76,7 @@ func appender(parentKey string, line []string, v map[string]interface{}) map[str
 	return v
 }
 
+// getValueWithType tries to parse the input string into different data types and returns the parsed value.
 func getValueWithType(input string) interface{} {
 	// Try parsing as boolean
 	if val, err := strconv.ParseBool(input); err == nil {

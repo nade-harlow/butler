@@ -27,8 +27,9 @@ func LookUpEnv(key string) (string, bool) {
 	return os.LookupEnv(key)
 }
 
-func loadENVFile(path string) error {
-	f, err := os.Open(path)
+// LoadEnvFile loads environment variable key-value pairs from an environment file and sets them.
+func LoadEnvFile(filePath string) error {
+	f, err := os.Open(filePath)
 	if err != nil {
 		return err
 	}
@@ -53,29 +54,34 @@ func loadENVFile(path string) error {
 	return nil
 }
 
-func LoadConfig(envStruct interface{}, path string) error {
+
+// LoadConfig loads configuration data from a file into the provided environment struct.
+// The function supports different file types such as .env and .yaml.
+func LoadConfig(envStruct interface{}, filePath string) error {
 	if envStruct == nil {
 		return errors.New("struct cannot be nil")
 	}
-	if path == "" {
+	if filePath == "" {
 		return errors.New("provide file path")
 	}
-	fileExtension := strings.Split(path, ".")
+
+	fileExtension := strings.Split(filePath, ".")
 	fileType := fileExtension[len(fileExtension)-1]
 	switch fileType {
 	case envFileType:
-		err := loadENVFile(path)
+		err := LoadEnvFile(filePath)
 		if err != nil {
 			return err
 		}
 		return bind(envStruct)
 	case yamlFileType:
-		return loadYAMLFile(envStruct, path)
+		return LoadYAMLFile(envStruct, filePath)
 	}
 
 	return nil
 }
 
+// bind binds environment variable values to the corresponding fields in the provided environment struct.
 func bind(envStruct interface{}) error {
 	val := reflect.ValueOf(envStruct)
 	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct || val.IsNil() {
