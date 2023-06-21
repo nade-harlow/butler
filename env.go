@@ -3,20 +3,11 @@ package butler
 import (
 	"bufio"
 	"errors"
-
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
-)
-
-const (
-	envTag       = "env"
-	formatTag    = "format"
-	defaultTag   = "default"
-	yamlFileType = "yaml"
-	envFileType  = "env"
 )
 
 var (
