@@ -71,7 +71,7 @@ func TestGetValueWithType(t *testing.T) {
 		}
 	})
 
-	t.Run("Test unit", func(t *testing.T) {
+	t.Run("Test uint", func(t *testing.T) {
 		unitInput := "456"
 		unitExpected := uint64(456)
 		unitResult := getValueWithType(unitInput)
