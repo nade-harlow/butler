@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func loadYAMLFile(envStruct interface{}, filepath string) error {
+func LoadYAMLFile(envStruct interface{}, filepath string) error {
 	return yamlReader(envStruct, filepath)
 }
 
