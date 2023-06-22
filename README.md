@@ -42,7 +42,7 @@ type Config struct {
 func main() {
   config := &Config{}
 
-  err := butler.LoadConfig(&config, "./env")
+  err := butler.LoadConfig(&config, "./.env")
   if err != nil {
     log.Fatalf("Error loading configuration: %v", err)
   }
