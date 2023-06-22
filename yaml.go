@@ -20,6 +20,7 @@ func yamlReader(envStruct interface{}, path string) error {
 	if err != nil {
 		return errors.New("error opening .yaml file: " + err.Error())
 	}
+	defer f.Close()
 	s := bufio.NewScanner(f)
 	m := make(map[string]interface{})
 	key := ""
