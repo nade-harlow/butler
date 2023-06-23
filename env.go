@@ -11,8 +11,6 @@ import (
 )
 
 var (
-	InvalidFormatError = errors.New("please provide a valid time format")
-
 	timeLayouts = []string{
 		time.RFC3339,
 		time.Layout,
