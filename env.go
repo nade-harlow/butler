@@ -59,13 +59,13 @@ func LoadEnvFile(filePath string) error {
 	for s.Scan() {
 		line := s.Text()
 
-		if line == "" {
+		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		if strings.Contains(line, "#") && strings.HasPrefix(line, "#") {
-			continue
+		pair := strings.SplitN(line, "=", 2)
+		if len(pair) != 2 {
+			return errors.New("invalid format in the environment file")
 		}
-		pair := strings.Split(line, "=")
 		key := strings.ToLower(strings.TrimSpace(pair[0]))
 		value := strings.TrimSpace(pair[1])
 		if err = SetEnv(key, value); err != nil {
