@@ -3,6 +3,7 @@ package butler
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 	"reflect"
 	"strconv"
@@ -56,8 +57,10 @@ func LoadEnvFile(filePath string) error {
 	}
 	defer f.Close()
 	s := bufio.NewScanner(f)
+	lineNumber := 0
 	for s.Scan() {
 		line := s.Text()
+		lineNumber++
 
 		if line == "" {
 			continue
@@ -65,12 +68,20 @@ func LoadEnvFile(filePath string) error {
 		if strings.Contains(line, "#") && strings.HasPrefix(line, "#") {
 			continue
 		}
-		pair := strings.Split(line, "=")
+		pair := strings.SplitN(line, "=", 2)
+		if len(pair) < 2 {
+			fmt.Sprintf("line %d has incomplete parameters", lineNumber)
+			continue
+		}
 		key := strings.ToLower(strings.TrimSpace(pair[0]))
 		value := strings.TrimSpace(pair[1])
 		if err = SetEnv(key, value); err != nil {
 			return err
 		}
+	}
+
+	if err = s.Err(); err != nil {
+		return err
 	}
 
 	return nil
@@ -187,14 +198,18 @@ func parseTime(layout, value string) (time.Time, error) {
 func parseTimeWithMultipleLayouts(layout, value string) (parsedTime time.Time, err error) {
 	if layout != "" {
 		parsedTime, err = parseTime(layout, value)
+		if err != nil {
+			return time.Time{}, fmt.Errorf("failed to parse time with layout %s: %w", layout, err)
+		}
+		return parsedTime, nil
 	} else {
 		for _, layout = range timeLayouts {
 			parsedTime, err = parseTime(layout, value)
 			if err == nil {
-				break
+				return parsedTime, nil
 			}
 		}
 	}
 
-	return parsedTime, err
+	return time.Time{}, fmt.Errorf("failed to parse time with all possible layouts")
 }
