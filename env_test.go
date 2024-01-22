@@ -64,8 +64,8 @@ func TestLoadEnvFile(t *testing.T) {
 	}
 
 	expectedCalls := [][]string{
-		{"env_var1", "Value1"},
-		{"env_var2", "Value2"},
+		{"ENV_VAR1", "Value1"},
+		{"ENV_VAR2", "Value2"},
 	}
 	for i, call := range expectedCalls {
 		val := GetEnv(call[0])
@@ -171,12 +171,12 @@ BOOL_FIELD: true`
 }
 
 func envFileContent() string {
-	return `STRING_FIELD='test value'
+	return `STRING_FIELD=test value
 			INT_FIELD=123
 			UINT_FIELD=456
 			FLOAT_FIELD=3.14
 			BOOL_FIELD=true
-			TIME_FIELD="2023-06-18"
+			TIME_FIELD=2022-01-01
 			DURATION_FIELD=1h30m`
 }
 

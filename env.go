@@ -66,7 +66,7 @@ func LoadEnvFile(filePath string) error {
 			continue
 		}
 		pair := strings.Split(line, "=")
-		key := strings.ToLower(strings.TrimSpace(pair[0]))
+		key := strings.TrimSpace(pair[0])
 		value := strings.TrimSpace(pair[1])
 		if err = SetEnv(key, value); err != nil {
 			return err
